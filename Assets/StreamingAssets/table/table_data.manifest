@@ -1,0 +1,21 @@
+ManifestFileVersion: 0
+CRC: 3377417723
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 9aff9df7ac378ceef74a071737bb3a75
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: b57791dcbc9f30b640d7a99f966ff6da
+HashAppended: 0
+ClassTypes:
+- Class: 114
+  Script: {fileID: 11500000, guid: be9fef23376b59e4890cdbcaa860c04f, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 5999b6e6009b2e94aa361cbf87563c64, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+Assets:
+- Assets/_Share/_TableAsset/HeroDataTable.asset
+- Assets/_Share/_TableAsset/LevelInfoTable.asset
+Dependencies: []
