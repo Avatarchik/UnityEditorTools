@@ -7,8 +7,6 @@ using UnityEngine.UI;
 
 public class TableDataPack : MonoBehaviour
 {
-
-    BinaryWriter bw;
     Text _text;
 
 	void Start () {
