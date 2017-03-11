@@ -24,8 +24,8 @@ public class TableDataPack : MonoBehaviour
 
     IEnumerator LoadTableData()
     {
-        
-        string shortURL = "table/table_data";
+
+        string shortURL = "table_data.unity3d";
         string path = "";
 
 #if UNITY_ANDROID && !UNITY_EDITOR

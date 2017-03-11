@@ -1,0 +1,21 @@
+ManifestFileVersion: 0
+CRC: 935771888
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: c824e113255af670b87360d3ddf86c97
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 0fd99c5e9ad8f0f80da6ba03142e9c82
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+Assets:
+- Assets/UITexture/sugar5.png
+- Assets/UITexture/sugar3.png
+- Assets/UITexture/sugar1.png
+- Assets/UITexture/sugar2.png
+- Assets/UITexture/sugar6.png
+- Assets/UITexture/sugar4.png
+Dependencies: []

@@ -20,31 +20,29 @@ public enum TableValueType
 
 public class EditorHelper
 {
+    #region Public Define
     public static BuildTarget buildTarget =
 #if UNITY_ANDROID
         BuildTarget.Android;
-#elif UNITY_STANDALONE_OSX || UNITY_IPHONE
+#elif UNITY_STANDALONE_OSX || UNITY_IPHONE || UNITY_IOS
         BuildTarget.iOS;
 #else
         BuildTarget.StandaloneWindows;
 #endif
 
-    //Unity 5.x 每个资源都会有一个ABName，相同ABName的资源会被打入同一个AB包中
-    public static string mStrTableData_ABName = "table_data";
+    //Assetbundle打包输出路径
+    public static string bundlePath =
+//#if UNITY_ANDROID
+//        Application.dataPath + "/assets";
+//#elif UNITY_STANDALONE_OSX || UNITY_IPHONE || UNITY_IOS
+//        Application.dataPath + "/Raw";
+//#else
+//        Application.dataPath + "/StreamingAssets";
+//#endif
 
-    public static string mStrExcelFolder = "Assets/_Share/Tables/";
-    public static string mStrScriptableObjectFolder = "Assets/_Share/ScriptableObject/";
+    Application.dataPath + "/StreamingAssets";
 
-    public static string mStrTableAssetFolder = "Assets/_Share/_TableAsset/";
-
-    //数据表格整包路径
-    /*
-     * Application.streamingAssetsPath 也就是 StreamingAssets 下面用 _Table命名子文件夹就找不到，不懂为什么
-     * + "/_Table"就找不到 真的不懂为什么
-     */
-    public static string mStrTableAssetBundleTotalFolder = Application.streamingAssetsPath + "/table";
-
-    public static string mStrAssetProfileFolder = "Assets/_Share/_Profile/";
+    #endregion
 
 
     public static T CreateNewEditorProfile<T>(string _profileName, string _path = "", string _class = "") where T : ScriptableObject

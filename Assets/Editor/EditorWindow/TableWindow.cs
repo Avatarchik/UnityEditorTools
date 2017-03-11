@@ -11,22 +11,57 @@ using System.Threading;
 
 public class TableWindow : EditorWindow {
 
+
+    #region TablePack Define
+
+    //Unity 5.x 每个资源都会有一个ABName，相同ABName的资源会被打入同一个AB包中
+    public static string mStrTableData_ABName = "table_data";//Excel表格的标签
+
+    public static string mStrExcelFolder = "Assets/_Share/Tables/";
+    public static string mStrScriptableObjectFolder = "Assets/_Share/ScriptableObject/";
+
+    public static string mStrTableAssetFolder = "Assets/_Share/TableAsset/";
+
+
+    /*
+     * Application.streamingAssetsPath 也就是 StreamingAssets 下面用 _Table命名子文件夹就找不到，不懂为什么
+     * + "/_Table"就找不到 真的不懂为什么
+     */
+    //public static string mStrTableAssetBundleTotalFolder = EditorHelper.bundlePath + "/Table";//数据表格整包路径
+    public static string mStrTableAssetBundleTotalFolder = EditorHelper.bundlePath;//数据表格整包路径
+
+    public static string mStrAssetProfileFolder = "Assets/_Share/_Profile/";
+
+    #endregion
+
+    #region 生成TableProcessProfile //一般只执行一次，创建配置文件列表
     protected TableProcessProfile profile;
+    public static string mStrProfileName = "TableProcessProfile_System.asset";
 
     //一般只执行一次，创建配置文件列表
     [MenuItem("Assets/Create/Custom Assets/CreatTableProcess")]
-    static void CreateAnimationTableAsset()
+    static void CreateExcelTableAsset()
     {
-        TableProcessProfile _profile = AssetDatabase.LoadAssetAtPath(EditorHelper.mStrAssetProfileFolder + "TableProcessProfile_System.asset",
+        TableProcessProfile _profile = AssetDatabase.LoadAssetAtPath(mStrAssetProfileFolder + mStrProfileName,
                                       typeof(TableProcessProfile)) as TableProcessProfile;
         if (_profile == null)
         {
-            _profile = EditorHelper.CreateNewEditorProfile<TableProcessProfile>("TableProcessProfile_System.asset", EditorHelper.mStrAssetProfileFolder, "TableProcessProfile");
+            _profile = EditorHelper.CreateNewEditorProfile<TableProcessProfile>("TableProcessProfile_System.asset", mStrAssetProfileFolder, "TableProcessProfile");
         }
+    }
+    #endregion
+
+    protected Assembly asm;
+
+    [MenuItem("Helper/Table Window")]
+    public static TableWindow NewWindow()
+    {
+        TableWindow newWindow = EditorWindow.GetWindow<TableWindow>();
+        return newWindow;
     }
 
     /*
-    * 配表规则定死：
+    * 配表规则：
     *      第一行是 字段变量名称（中文）
     *      第二行是 字段变量类型（字符串，string,int（暂时只有两种））
     *      第三行是 字段变量名称（英文，代码中可用）
@@ -59,16 +94,6 @@ public class TableWindow : EditorWindow {
     //--- <行标，<列标，字段内容>>
     Dictionary<int, Dictionary<int, string>> mDicExcelData = new Dictionary<int, Dictionary<int, string>>();
 
-    [MenuItem("Helper/Table Window")]
-    public static TableWindow NewWindow()
-    {
-        TableWindow newWindow = EditorWindow.GetWindow<TableWindow>();
-        return newWindow;
-    }
-
-    protected Assembly asm;
-
-    public static string mStrProfileName = "TableProcessProfile_System.asset";
     protected void OnEnable()
     {
         autoRepaintOnSceneChange = false;
@@ -84,15 +109,12 @@ public class TableWindow : EditorWindow {
 
     void OnGUI()
     {
-        if (asm == null)
-        {
-            asm = Assembly.Load("Assembly-CSharp");
-        }
 
         #region excel_2_*.asset
 
         GUILayout.Space(20);
         //（离散包）从Excel读取数据，然后每个 TableProcessInfo info in profile.tableInfos 打成自己单独的一个*.asset文件 
+        // 并给他们 assetBundleName 都赋值 EditorHelper.mStrTableData_ABName
         
         if (GUILayout.Button("Excel_2_Asset All (excel_2_*.asset)", GUILayout.Width(256)))
         {
@@ -109,93 +131,34 @@ public class TableWindow : EditorWindow {
                 }
             }
         }
+        #endregion
 
+        #region 设置标签（assetBundleName）
         GUILayout.Space(20);
+        if (GUILayout.Button("Set Table assetBundleName ", GUILayout.Width(400)))
+        {
+            SetAssetBundleName();
+            AssetDatabase.Refresh();
+        }
         #endregion
 
         #region 从离散包(*.asset)路径读取所有离散包，根据他们共有的标签（assetBundleName）打成一个文件（整包）
         GUILayout.Space(20);
-
-        GUI.Label(new Rect(40, 50, 700, 100), "所有Asset导出成一个整包, 不同平台导出结果不同，但是公用一个目录，导出前会清空导出目录");
-
-
-        if (profile == null) return;
-
-        if (asm == null)
+        if (GUILayout.Button("Package_Table (根据PlayerSetting里面的平台输出到相应的目录)", GUILayout.Width(400)))
         {
-            asm = Assembly.Load("Assembly-CSharp");
+            TableData_Package(EditorHelper.buildTarget);
+            AssetDatabase.Refresh();
         }
-
-        List<UnityEngine.Object> objs = new List<UnityEngine.Object>();
-        if (profile.tableInfos != null)
-        {
-            foreach (TableProcessInfo info in profile.tableInfos)
-            {
-                if (info.IsClientUse)
-                {
-                    string local = EditorHelper.mStrTableAssetFolder + info.ouput_asset_name;
-                    Debug.Log(local);
-                    UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath(local, typeof(UnityEngine.Object));
-                    objs.Add(obj);
-                }
-            }
-        }
-
-        if (GUILayout.Button("Package_All (PC)", GUILayout.Width(256)))
-        {
-            TableData_Package(objs, BuildTarget.StandaloneWindows);
-        }
-
-        if (GUILayout.Button("Package_All (Android)", GUILayout.Width(256)))
-        {
-            TableData_Package(objs, BuildTarget.Android);
-        }
-
-        if (GUILayout.Button("Package_All (IOS)", GUILayout.Width(256)))
-        {
-            TableData_Package(objs, BuildTarget.iOS);
-        }
-        AssetDatabase.Refresh();
-        GUILayout.Space(20);
 
         #endregion
     }
 
-    void ClearDataAB()
-    {
-        string _path = Application.streamingAssetsPath + "/table";
-        DirectoryInfo dirs = new DirectoryInfo(_path);
-
-        if(dirs==null||(!dirs.Exists))//不存在，就创建一个空目录
-		{
-            Directory.CreateDirectory(_path);
-            AssetDatabase.Refresh();
-			return ;
-		}
-
-        //存在就清空
-        FileInfo[] files = dirs.GetFiles();
-        if (files != null)
-        {
-            for (int i = 0; i < files.Length; i++)
-            {
-                if (files[i] != null)
-                {
-                    files[i].Delete();
-                    files[i] = null;
-                }
-            }
-            files = null;
-        }
-        AssetDatabase.Refresh();
-    }
-
     void LoadAsset(string _asset)
     {
-        profile = AssetDatabase.LoadAssetAtPath(EditorHelper.mStrAssetProfileFolder + _asset, typeof(TableProcessProfile)) as TableProcessProfile;
+        profile = AssetDatabase.LoadAssetAtPath(mStrAssetProfileFolder + _asset, typeof(TableProcessProfile)) as TableProcessProfile;
         if (profile == null)
         {
-            Debug.LogError(EditorHelper.mStrAssetProfileFolder + "mStrProfileName" + _asset + " no found, please create it first!");
+            Debug.LogError(mStrAssetProfileFolder + "mStrProfileName" + _asset + " no found, please create it first!");
         }
         profile.tableInfos.Sort(new TableProcessComparer());
     }
@@ -214,23 +177,6 @@ public class TableWindow : EditorWindow {
         }
     }
 
-    public static string mStrExcelFolder = "Assets/Tables/";
-    public static string mStrScriptableObjectFolder = "Assets/ScriptableObject/";
-
-    public static Worksheet LoadExcelSheet(string _excelFileName, string _sheetName)
-    {
-        Workbook book = new Workbook(mStrExcelFolder + _excelFileName);
-        foreach (Worksheet sheet in book.Worksheets)
-        {
-            if (sheet.Name == _sheetName)
-            {
-                return sheet;
-            }
-        }
-        Debug.LogError("can't find the sheet you want " + _sheetName);
-        return null;
-    }
-
     void ExportTable(TableProcessInfo _tableInfo)
     {
         Worksheet sheet = EditorHelper.LoadExcelSheet(AssetDatabase.GetAssetPath(_tableInfo.input_excel), _tableInfo.sheet_name);
@@ -245,7 +191,7 @@ public class TableWindow : EditorWindow {
          * sheet.Cells.Count 是所有有内容的格子个数，也就是说，标准矩形表格外的格子也会读进来，所以需要筛选
          * sheet.Cells.MaxDataColumn 非空格子的最大列数
          * 
-         * 配表规则定死：
+         * 配表规则：
          *      第一行是 字段变量名称（中文）
          *      第二行是 字段变量类型（字符串，string,int（暂时只有两种））
          *      第三行是 字段变量名称（英文，代码中可用）
@@ -370,15 +316,10 @@ public class TableWindow : EditorWindow {
         //---
         ScriptableObject oTable
             = EditorHelper.CreateNewEditorProfile<ScriptableObject>(_tableInfo.ouput_asset_name + ".asset",
-                                                                    EditorHelper.mStrTableAssetFolder,
+                                                                    mStrTableAssetFolder,
                                                                     _tableInfo.table_class_name);
         if (oTable == null)
             return;
-
-        //得到指定资源路径  
-        string path = EditorHelper.mStrTableAssetFolder + _tableInfo.ouput_asset_name + ".asset";
-        AssetImporter ai = AssetImporter.GetAtPath(path);
-        ai.assetBundleName = EditorHelper.mStrTableData_ABName;
 
         ////---
         System.Type tData = asm.GetType(_tableInfo.data_class_name);
@@ -407,33 +348,100 @@ public class TableWindow : EditorWindow {
         AssetDatabase.SaveAssets();
     }
 
-    private void TableData_Package(List<UnityEngine.Object> _objs, BuildTarget _buildTarget)
+    private void SetAssetBundleName()
     {
-        ClearDataAB();
-        //打包为一个文件       
-        //--- 不同平台需要各自打包
-        BuildPipeline.BuildAssetBundles(EditorHelper.mStrTableAssetBundleTotalFolder,
+        DirectoryInfo dirs = new DirectoryInfo(mStrTableAssetFolder);
+        if (dirs == null || (!dirs.Exists))
+        {
+            Debug.LogError(mStrTableAssetFolder + " 路径为不存在");
+            return;
+        }
+
+        FileInfo[] files = dirs.GetFiles();
+        for (int i = 0; i < files.Length; ++i)
+        {
+            if (!files[i].Name.EndsWith(".meta"))
+            {
+                AssetImporter ai = AssetImporter.GetAtPath(mStrTableAssetFolder + files[i].Name);
+                ai.assetBundleName = mStrTableData_ABName;
+                ai.assetBundleVariant = "unity3d";
+                ai.SaveAndReimport();
+            }
+        }
+    }
+
+    private void ClearDataAB()
+    {
+        string _path = mStrTableAssetBundleTotalFolder;
+        DirectoryInfo dirs = new DirectoryInfo(_path);
+
+        if (dirs == null || (!dirs.Exists))//不存在，就创建一个空目录
+        {
+            Directory.CreateDirectory(_path);
+            AssetDatabase.Refresh();
+            return;
+        }
+
+        //存在就清空
+        FileInfo[] files = dirs.GetFiles();
+        if (files != null)
+        {
+            for (int i = 0; i < files.Length; i++)
+            {
+                if (files[i] != null)
+                {
+                    files[i].Delete();
+                    files[i] = null;
+                }
+            }
+            files = null;
+        }
+        AssetDatabase.Refresh();
+    }
+
+    private void TableData_Package(BuildTarget _buildTarget)
+    {
+
+        ClearDataAB();      
+
+        DirectoryInfo dirs = new DirectoryInfo(mStrTableAssetFolder);
+
+        if (dirs == null || (!dirs.Exists))
+        {
+            Debug.LogError(mStrTableAssetFolder + " 路径为不存在");
+            return;
+        }
+
+        FileInfo[] files = dirs.GetFiles();
+
+        AssetBundleBuild[] builds = new AssetBundleBuild[1];
+        builds[0].assetBundleName = mStrTableData_ABName;
+        builds[0].assetBundleVariant = "unity3d";
+
+        List<string> _assetNames = new List<string>();
+        for (int i = 0; i < files.Length; ++i)
+        {
+            if (!files[i].Name.EndsWith(".meta"))
+            {
+                _assetNames.Add(mStrTableAssetFolder + files[i].Name);
+            }
+        }
+        builds[0].assetNames = _assetNames.ToArray();
+
+        //这里是单独用bulidMap的方式单独打包了指定的文件（Excel跟对应CS文件生成的*.asset文件），如果传buildMap，则所有有abName的都会打包
+        UnityEngine.AssetBundleManifest _abM = BuildPipeline.BuildAssetBundles(mStrTableAssetBundleTotalFolder, 
+            builds, 
             BuildAssetBundleOptions.None,
             _buildTarget);
 
-//#if UNITY_EDITOR
-//        BuildPipeline.BuildAssetBundles(EditorHelper.mStrTableAssetBundleTotalFolder,
-//            BuildAssetBundleOptions.None,
-//            _buildTarget);
-//        //BuildPipeline.BuildAssetBundles(EditorHelper.mStrTableAssetBundleFolder);
-
-//#elif UNITY_IOS
-//            BuildPipeline.BuildAssetBundle(oTable, 
-//                null, 
-//                EditorHelper.mStrTableAssetBundleFolder + _tableInfo.ouput_asset_name + ".assetbundle", 
-//                BuildAssetBundleOptions.CollectDependencies, 
-//                BuildTarget.iOS);
-//#elif UNITY_ANDROID
-//            BuildPipeline.BuildAssetBundle(oTable, 
-//                null, 
-//                EditorHelper.mStrTableAssetBundleFolder + _tableInfo.ouput_asset_name + ".assetbundle", 
-//                BuildAssetBundleOptions.CollectDependencies, 
-//                BuildTarget.Android);
-//#endif
+        if (_abM != null)
+        {
+            EditorUtility.DisplayDialog("Excel已经打包完成", "", "确定");
+            AssetDatabase.Refresh();
+        }
+        else
+        {
+            EditorUtility.DisplayDialog("Excel打包出错", "", "确定");
+        }
     }
 }

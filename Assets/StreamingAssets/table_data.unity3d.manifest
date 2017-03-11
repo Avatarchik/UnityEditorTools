@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3377417723
+CRC: 3722531687
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 9aff9df7ac378ceef74a071737bb3a75
+    Hash: 4883749cf55cad6950b061845005f563
   TypeTreeHash:
     serializedVersion: 2
     Hash: b57791dcbc9f30b640d7a99f966ff6da
@@ -16,6 +16,6 @@ ClassTypes:
 - Class: 115
   Script: {instanceID: 0}
 Assets:
-- Assets/_Share/_TableAsset/HeroDataTable.asset
-- Assets/_Share/_TableAsset/LevelInfoTable.asset
+- Assets/_Share/TableAsset/HeroDataTable.asset
+- Assets/_Share/TableAsset/LevelInfoTable.asset
 Dependencies: []
