@@ -97,7 +97,7 @@ public class MD5ToolsWindow : EditorWindow
             string strMD5 = System.BitConverter.ToString(hash);
             file.Close();
 
-            string key = filePath.Substring(dir.Length, filePath.Length - dir.Length - 1);
+            string key = filePath.Substring(dir.Length, filePath.Length - dir.Length);
 
             key = key.Replace("\\", "/");
 

@@ -23,4 +23,10 @@ public class CreateAssetBundle : Editor
     //    AssetDatabase.Refresh();
     //}
 
+    [MenuItem("Helper/Clean Cache")]
+    public static void CleanCache()
+    {
+        Caching.CleanCache();
+    }
+
 }
