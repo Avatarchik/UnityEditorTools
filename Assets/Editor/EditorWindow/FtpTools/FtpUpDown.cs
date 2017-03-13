@@ -12,7 +12,7 @@ namespace ConvertData
 
     class FtpUpDown
     {
-        public int curNum;
+        //public int curNum;
 
         string ftpServerIP;
         string ftpUserID;
@@ -65,6 +65,9 @@ namespace ConvertData
             }
             catch (Exception ex)
             {
+                Debug.Log("FtpUpDown - GetFileList");
+                Debug.Log(ex.Message);
+                Debug.Log(ex.StackTrace);  
                 downloadFiles = null;
                 return downloadFiles;
             }
@@ -120,6 +123,9 @@ namespace ConvertData
             }
             catch (Exception ex)
             {
+                Debug.Log("FtpUpDown - Upload");
+                Debug.Log(ex.Message);
+                Debug.Log(ex.StackTrace);  
                 Debug.LogError("Upload Error" + ex.Message + "," + uri);
                 return false;
             }
@@ -186,6 +192,9 @@ namespace ConvertData
             }
             catch (Exception ex)
             {
+                Debug.Log("FtpUpDown - DeleteFileName");
+                Debug.Log(ex.Message);
+                Debug.Log(ex.StackTrace);
                 Debug.Log("删除错误");
             }
         }

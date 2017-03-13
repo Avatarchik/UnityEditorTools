@@ -16,23 +16,23 @@ public class UITexturePack : EditorWindow
     const string mStrUITextureFolder = "Assets/UITexture/";//贴图存放路径
 
     const string mStrUITexture_ABName = "uitexture";//UITexture的标签 (Assets/UITexture 路径下的贴图)
-    //static string mStrUITextureAssetBundleTotalFolder = EditorHelper.bundlePath + "/UITexture";//UITexture整包路径
-    static string mStrUITextureAssetBundleTotalFolder = EditorHelper.bundlePath;//UITexture整包路径
+    static string mStrUITextureAssetBundleTotalFolder = EditorHelper.bundlePath + "/UITexture";//UITexture整包路径
+    //static string mStrUITextureAssetBundleTotalFolder = EditorHelper.bundlePath;//UITexture整包路径
 
     #endregion
 
-    //[MenuItem("Helper/UITexturePack")]
-    //public static void StartBuild()
-    //{
-
-    //    UITexture_Package(EditorHelper.buildTarget);
-    //}
-
-    [MenuItem("Helper/SetUITextureABName")]
+    [MenuItem("Helper/UITexturePack")]
     public static void StartBuild()
     {
-        SetAssetBundleName();
+
+        UITexture_Package(EditorHelper.buildTarget);
     }
+
+    //[MenuItem("Helper/SetUITextureABName")]
+    //public static void StartBuild()
+    //{
+    //    SetAssetBundleName();
+    //}
 
     private static void SetAssetBundleName()
     {
@@ -97,55 +97,27 @@ public class UITexturePack : EditorWindow
             return;
         }
 
-        //AssetBundleBuild[] builds = new AssetBundleBuild[1];
-        //builds[0].assetBundleName = mStrUITexture_ABName;
+        AssetBundleBuild[] builds = new AssetBundleBuild[1];
+        builds[0].assetBundleName = mStrUITexture_ABName;
+        builds[0].assetBundleVariant = "unity3d";
 
-        //FileInfo[] files = dirs.GetFiles();
-        //List<string> _assetNames = new List<string>();
-        //for (int i = 0; i < files.Length; ++i)
-        //{
-        //    if (!files[i].Name.EndsWith(".meta"))
-        //    {
-        //        _assetNames.Add(mStrUITextureFolder + files[i].Name);
-        //    }
-        //}
-        //builds[0].assetNames = _assetNames.ToArray();
-
-        //UnityEngine.AssetBundleManifest _abM = BuildPipeline.BuildAssetBundles(mStrUITextureAssetBundleTotalFolder,
-        //    builds,
-        //    BuildAssetBundleOptions.None,
-        //    _buildTarget);
-
-        //if (_abM != null)
-        //{
-        //    EditorUtility.DisplayDialog("UITexture已经打包完成", "", "确定");
-        //    AssetDatabase.Refresh();
-        //}
-        //else
-        //{
-        //    EditorUtility.DisplayDialog("UITexture打包出错", "", "确定");
-        //}
-
-        //Unity 5.0.2f1 AssetBundleBuild[] 不认后缀.png（其实除了*.asset *.unity ，其他的貌似都不认）
-        //如果不传buildMap，让API自己去找ABName 标签打的话，是可以的，目前没有解决方案，想换个新版本试试
-        //暂时用下面Unity4.x的方法打贴图
-        List<UnityEngine.Object> assets = new List<UnityEngine.Object>();
-        var paths = Directory.GetFiles(mStrUITextureFolder, "*", SearchOption.AllDirectories);
-        foreach (var item in paths)
+        FileInfo[] files = dirs.GetFiles();
+        List<string> _assetNames = new List<string>();
+        for (int i = 0; i < files.Length; ++i)
         {
-            var addon = AssetDatabase.LoadAssetAtPath(item.Replace(@"\", "/"), typeof(UnityEngine.Object));
-            if (addon != null)
+            if (!files[i].Name.EndsWith(".meta"))
             {
-                assets.Add(addon);
+                _assetNames.Add(mStrUITextureFolder + files[i].Name);
             }
         }
-        string UITextureBundleName = "UITexture.unity3d";
-        bool ok = BuildPipeline.BuildAssetBundle(null, 
-            assets.ToArray(), 
-            mStrUITextureAssetBundleTotalFolder + "/" + UITextureBundleName, 
-            BuildAssetBundleOptions.None, 
+        builds[0].assetNames = _assetNames.ToArray();
+
+        UnityEngine.AssetBundleManifest _abM = BuildPipeline.BuildAssetBundles(mStrUITextureAssetBundleTotalFolder,
+            builds,
+            BuildAssetBundleOptions.None,
             _buildTarget);
-        if (ok)
+
+        if (_abM != null)
         {
             EditorUtility.DisplayDialog("UITexture已经打包完成", "", "确定");
             AssetDatabase.Refresh();
@@ -154,6 +126,33 @@ public class UITexturePack : EditorWindow
         {
             EditorUtility.DisplayDialog("UITexture打包出错", "", "确定");
         }
+
+        ////Unity4.x的方法
+        //List<UnityEngine.Object> assets = new List<UnityEngine.Object>();
+        //var paths = Directory.GetFiles(mStrUITextureFolder, "*", SearchOption.AllDirectories);
+        //foreach (var item in paths)
+        //{
+        //    var addon = AssetDatabase.LoadAssetAtPath(item.Replace(@"\", "/"), typeof(UnityEngine.Object));
+        //    if (addon != null)
+        //    {
+        //        assets.Add(addon);
+        //    }
+        //}
+        //string UITextureBundleName = "UITexture.unity3d";
+        //bool ok = BuildPipeline.BuildAssetBundle(null, 
+        //    assets.ToArray(), 
+        //    mStrUITextureAssetBundleTotalFolder + "/" + UITextureBundleName, 
+        //    BuildAssetBundleOptions.None, 
+        //    _buildTarget);
+        //if (ok)
+        //{
+        //    EditorUtility.DisplayDialog("UITexture已经打包完成", "", "确定");
+        //    AssetDatabase.Refresh();
+        //}
+        //else
+        //{
+        //    EditorUtility.DisplayDialog("UITexture打包出错", "", "确定");
+        //}
 
         
     }

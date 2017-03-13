@@ -2,10 +2,15 @@
 整理一些常用的工具，不定期更新
 
 ##################################################################################
-2017-03-11 更新
+2017-03-13 更新    
 # AssetBundle打包 整理    
 
--大体流程：根据Unity 5.x的新版接口，给需要打进一个AB包的资源提前设置AssetbundleName，然后统一打包。AssetbundleName相同的资源会被打包到同一个bundle    
+-Unity版本更新到Unity 5.5.0f3 (64-bit)，BuildAssetbundles(string outpath)弃用，打包工具做相应调整
+ 
+
+##################################################################################
+2017-03-11 更新
+# AssetBundle打包 整理       
 
 -菜单栏[MenuItem("Helper/Table Window")]    
 	Excel表格多了一步跟对应CS绑定输出ScriptObject    
@@ -16,10 +21,9 @@
 
 -内附加载表格实例（Assets\Examples\TableDataPack\TableDataPack.unity）PC，Android真机测试通过
 
--菜单栏[MenuItem("Helper/SetUITextureABName")]    
-	设置Assets/UITexture/目录下面所有贴图资源的AssetbundleName    
--菜单栏[MenuItem("Helper/AB_BuildAll")]    
-	把所有AssetbundleName不为None的资源打包，输出到StreamingAssets    
+-菜单栏[MenuItem("Helper/UITexturePack")]    
+	Assets/UITexture/目录下面所有贴图资源打包    
+   
 
 -菜单栏[MenuItem("Helper/MD5Tools Window")]    
 	给指定路径(示例中为StreamingAssets)下的资源生成MD5文件，用来做热更比对用    
@@ -36,4 +40,4 @@
 
 ##################################################################################
 2017-03-10 更新
-# Excel表格打包(已更新，已最新版本2017-03-11 更新)
+# Excel表格打包(已更新)

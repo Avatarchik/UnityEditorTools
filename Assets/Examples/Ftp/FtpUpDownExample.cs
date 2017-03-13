@@ -65,7 +65,7 @@ public class FtpUpDownExample : MonoBehaviour
             return;
         }
 
-        FtpUpDown _ftp = new FtpUpDown(ftpServerIP, ftpUserID, ftpPassword);
+        ConvertData.FtpUpDown _ftp = new FtpUpDown(ftpServerIP, ftpUserID, ftpPassword);
         if(_ftp == null)
         {
             return;

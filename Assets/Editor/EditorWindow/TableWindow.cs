@@ -27,8 +27,8 @@ public class TableWindow : EditorWindow {
      * Application.streamingAssetsPath 也就是 StreamingAssets 下面用 _Table命名子文件夹就找不到，不懂为什么
      * + "/_Table"就找不到 真的不懂为什么
      */
-    //public static string mStrTableAssetBundleTotalFolder = EditorHelper.bundlePath + "/Table";//数据表格整包路径
-    public static string mStrTableAssetBundleTotalFolder = EditorHelper.bundlePath;//数据表格整包路径
+    public static string mStrTableAssetBundleTotalFolder = EditorHelper.bundlePath + "/Table";//数据表格整包路径
+    //public static string mStrTableAssetBundleTotalFolder = EditorHelper.bundlePath;//数据表格整包路径
 
     public static string mStrAssetProfileFolder = "Assets/_Share/_Profile/";
 
@@ -56,8 +56,9 @@ public class TableWindow : EditorWindow {
     [MenuItem("Helper/Table Window")]
     public static TableWindow NewWindow()
     {
-        TableWindow newWindow = EditorWindow.GetWindow<TableWindow>();
-        return newWindow;
+        //TableWindow newWindow = EditorWindow.GetWindow<TableWindow>();
+        //GetWindow<TableWindow>();
+        return GetWindow<TableWindow>();
     }
 
     /*
@@ -428,7 +429,6 @@ public class TableWindow : EditorWindow {
         }
         builds[0].assetNames = _assetNames.ToArray();
 
-        //这里是单独用bulidMap的方式单独打包了指定的文件（Excel跟对应CS文件生成的*.asset文件），如果传buildMap，则所有有abName的都会打包
         UnityEngine.AssetBundleManifest _abM = BuildPipeline.BuildAssetBundles(mStrTableAssetBundleTotalFolder, 
             builds, 
             BuildAssetBundleOptions.None,

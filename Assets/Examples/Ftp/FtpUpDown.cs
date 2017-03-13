@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.IO;
-using UnityEditor;
+//using UnityEditor;
 using UnityEngine;
 
 
@@ -31,6 +31,7 @@ namespace ConvertData
 
         public FtpUpDown(string ftpServerIP, string ftpUserID, string ftpPassword)
         {
+            this.curNum = 0;
             this.ftpServerIP = ftpServerIP;
             this.ftpUserID = ftpUserID;
             this.ftpPassword = ftpPassword;
@@ -65,6 +66,9 @@ namespace ConvertData
             }
             catch (Exception ex)
             {
+                Debug.Log("FtpUpDown - GetFileList");
+                Debug.Log(ex.Message);
+                Debug.Log(ex.StackTrace);  
                 downloadFiles = null;
                 return downloadFiles;
             }
@@ -120,6 +124,9 @@ namespace ConvertData
             }
             catch (Exception ex)
             {
+                Debug.Log("FtpUpDown - Upload");
+                Debug.Log(ex.Message);
+                Debug.Log(ex.StackTrace);
                 Debug.LogError("Upload Error" + ex.Message + "," + uri);
                 return false;
             }
@@ -186,6 +193,9 @@ namespace ConvertData
             }
             catch (Exception ex)
             {
+                Debug.Log("FtpUpDown - DeleteFileName");
+                Debug.Log(ex.Message);
+                Debug.Log(ex.StackTrace);
                 Debug.Log("删除错误");
             }
         }

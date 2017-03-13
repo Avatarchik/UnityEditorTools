@@ -1,9 +1,7 @@
 ManifestFileVersion: 0
+CRC: 3692777852
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
       Name: table_data.unity3d
-      Dependencies: {}
-    Info_1:
-      Name: uitexture.unity3d
       Dependencies: {}
