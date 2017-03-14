@@ -45,12 +45,22 @@ public class AbHotUpdateExample : MonoBehaviour
             Debug.LogError("Resources_Server_Url Input is Error !!!");
             return;
         }
-        StartCoroutine(OnUpdateResource());
+        //StartCoroutine(OnUpdateResource());
+        StartCoroutine(DownLoadFile((_serverPath, _savePath) =>
+            {
+                Debug.Log("Finish DownLoad_Http From - " + _serverPath + " - To - " + _savePath);
+                AssetBundle _bundle = AssetBundle.LoadFromFile(_savePath);
+                if (_bundle != null)
+                {
+                    _ImageDownload.texture = _bundle.LoadAsset<Texture>("sugarBoss.png");
+                }
+            }));
     }
 
 	void Update () {
 	}
 
+    //WWW加载到本地cache，然后WWW加载使用 
     IEnumerator OnUpdateResource()
     {
         string dataPath = Application.dataPath + "/StreamingAssets/";
@@ -65,20 +75,12 @@ public class AbHotUpdateExample : MonoBehaviour
         }
         
         File.WriteAllBytes(dataPath + "VersionMD5.txt", www.bytes);
-        string filesText = www.text;
-        string[] files = filesText.Split('\n');
+        string md5Text = www.text;
+        Dictionary<string, string> _dic = AssetBundles.Util.GetMD5DicByFileString(md5Text);
 
-        for (int i = 0; i < files.Length; i++)
+        foreach(KeyValuePair<string, string> pair in _dic)
         {
-            if (string.IsNullOrEmpty(files[i]))
-            {
-                continue;
-            }
-            string _line = files[i].Trim('\r');
-            string[] keyValue = _line.Split('%');
-            string fileName = keyValue[1];
-            string localfile = (dataPath + fileName).Trim();
-
+            string localfile = (dataPath + pair.Key).Trim();
             string path = Path.GetDirectoryName(localfile);
             if (!Directory.Exists(path))
             {
@@ -88,8 +90,8 @@ public class AbHotUpdateExample : MonoBehaviour
             bool canUpdate = !File.Exists(localfile);
             if (!canUpdate)
             {
-                string remoteMd5 = keyValue[3].Trim();
-                string localMd5 = AssetBundleManager.instance.GetMD5(fileName);
+                string remoteMd5 = pair.Value.Trim();
+                string localMd5 = AssetBundleManager.instance.GetLocalMD5(pair.Key);
 
                 canUpdate = !remoteMd5.Equals(localMd5);
                 if (canUpdate)
@@ -97,20 +99,105 @@ public class AbHotUpdateExample : MonoBehaviour
                     File.Delete(localfile);
                 }
             }
-            if (canUpdate)
+
+            if (canUpdate == true)
             {
-                Debug.Log("BeginDownload : " + fileName);
-                AssetBundleManager.instance.LoadAssetBundleInternal(fileName, 
-                    ()=>
+                Debug.Log("BeginDownload : " + pair.Key);
+                AssetBundleManager.instance.LoadAssetBundleInternal(pair.Key,
+                    () =>
                     {
                         string _errorStr = "";
-                        LoadedAssetBundle _bundle = AssetBundleManager.GetLoadedAssetBundle(fileName, out _errorStr);
+                        LoadedAssetBundle _bundle = AssetBundleManager.GetLoadedAssetBundle(pair.Key, out _errorStr);
                         if (string.IsNullOrEmpty(_errorStr))
                         {
                             _ImageDownload.texture = _bundle.m_AssetBundle.LoadAsset<Texture>("sugarBoss.png");
                         }
-                        
+
                     });
+            }
+        }
+
+        yield return new WaitForEndOfFrame();
+        StartGame();
+    }
+
+    //Http下载到本地磁盘，然后WWW加载使用
+    IEnumerator DownLoadFile(System.Action<string, string> _callBack)
+    {
+        string dataPath = Application.dataPath + "/StreamingAssets/";
+        string listUrl = _resServerUrl + "VersionMD5.txt";
+        WWW www = new WWW(listUrl);
+        yield return www;
+
+        if (www.error != null)
+        {
+            Debug.LogError(www.error);
+            yield break;
+        }
+
+        File.WriteAllBytes(dataPath + "VersionMD5.txt", www.bytes);
+        string md5Text = www.text;
+        Dictionary<string, string> _dic = AssetBundles.Util.GetMD5DicByFileString(md5Text);
+
+        foreach (KeyValuePair<string, string> pair in _dic)
+        {
+            string localfile = (dataPath + pair.Key).Trim();
+            string path = Path.GetDirectoryName(localfile);
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            bool canUpdate = !File.Exists(localfile);
+            if (!canUpdate)
+            {
+                string remoteMd5 = pair.Value.Trim();
+                string localMd5 = AssetBundleManager.instance.GetLocalMD5(pair.Key);
+
+                canUpdate = !remoteMd5.Equals(localMd5);
+                if (canUpdate)
+                {
+                    File.Delete(localfile);
+                }
+            }
+
+            if (canUpdate == true)
+            {
+                Debug.Log("BeginDownload : " + pair.Key);
+
+                string _fileUrl = _resServerUrl + pair.Key;
+                string _savePath = dataPath + pair.Key;
+                Debug.LogError("Begin DownLoad_Http - _fileUrl: " + _fileUrl);
+                Debug.LogError("Begin DownLoad_Http - _savePath: " + _savePath);
+                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(_fileUrl);
+                request.Method = "GET";
+                HttpWebResponse hw = (HttpWebResponse)request.GetResponse();
+                Stream stream = hw.GetResponseStream();
+                FileStream fileStream = new FileStream(_savePath, FileMode.Create, FileAccess.Write);
+                long length = hw.ContentLength;
+                long currentNum = 0;
+                decimal currentProgress = 0;
+                while (currentNum < length)
+                {
+                    byte[] buffer = new byte[1024];
+                    currentNum += stream.Read(buffer, 0, buffer.Length);
+                    fileStream.Write(buffer, 0, buffer.Length);
+                    if (currentNum % 1024 == 0)
+                    {
+                        currentProgress = Math.Round(Convert.ToDecimal(Convert.ToDouble(currentNum) / Convert.ToDouble(length) * 100), 4);
+                        Debug.Log("当前下载文件大小:" + length.ToString() + "字节   当前下载大小:" + currentNum + "字节 下载进度" + currentProgress.ToString() + "%");
+                    }
+                    else
+                    {
+                        Debug.Log("当前下载文件大小:" + length.ToString() + "字节   当前下载大小:" + currentNum + "字节" + "字节 下载进度" + 100 + "%");
+                    }
+                    yield return false;
+                }
+
+                hw.Close();
+                stream.Close();
+                fileStream.Close();
+                if (_callBack != null) _callBack(_fileUrl, _savePath);
             }
         }
 
@@ -123,13 +210,5 @@ public class AbHotUpdateExample : MonoBehaviour
         Debug.Log("StartGame");
 
         //本次更新包已经下载完毕 可以进入游戏了
-
-        //把下载的资源包输出到资源路径下（可选，不输出的话，是在Cache里面）
-        SaveAssetBundle();
-    }
-
-    void SaveAssetBundle()
-    {
-
     }
 }

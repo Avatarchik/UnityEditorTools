@@ -35,7 +35,7 @@ namespace AssetBundles
 
     public class AssetBundleManager : MonoBehaviour
     {
-        static string m_BaseDownloadingURL = "";
+        public static string m_BaseDownloadingURL = "";
         static Dictionary<string, LoadedAssetBundle> m_LoadedAssetBundles = new Dictionary<string, LoadedAssetBundle>();
         static Dictionary<string, LoadingAssetBundle> m_LoadingAssetBundles = new Dictionary<string, LoadingAssetBundle>();
         static Dictionary<string, string> m_DownloadingErrors = new Dictionary<string, string>();
@@ -58,7 +58,7 @@ namespace AssetBundles
             mDicAbMD5 = AssetBundles.Util.GetMD5DicByFilePath(_md5FilePath);
         }
 
-        public string GetMD5(string _resName)
+        public string GetLocalMD5(string _resName)
         {
             if (mDicAbMD5.ContainsKey(_resName))
             {
@@ -192,7 +192,16 @@ namespace AssetBundles
                         keysToRemove.Add(keyValue.Key);
                         continue;
                     }
-                    m_LoadedAssetBundles.Add(keyValue.Key, new LoadedAssetBundle(download.assetBundle));
+
+                    if (!m_LoadedAssetBundles.ContainsKey(keyValue.Key))
+                    {
+                        m_LoadedAssetBundles.Add(keyValue.Key, new LoadedAssetBundle(download.assetBundle));
+                    }
+                    else
+                    {
+                        m_LoadedAssetBundles[keyValue.Key] = new LoadedAssetBundle(download.assetBundle);
+                    }
+
                     keysToRemove.Add(keyValue.Key);
 
                     if (keyValue.Value.m_Action_Complete_Download != null)
