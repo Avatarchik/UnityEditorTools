@@ -1,0 +1,2 @@
+FileName%Table/table_data.unity3d%MD5%D9-71-02-B4-8E-C1-A8-F0-C8-B9-D4-1E-9F-36-EE-2A
+FileName%UITexture/uitexture.unity3d%MD5%92-03-91-AD-2B-29-EF-EB-C0-7F-F7-30-8A-00-2E-03

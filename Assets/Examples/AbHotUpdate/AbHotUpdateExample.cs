@@ -48,7 +48,15 @@ public class AbHotUpdateExample : MonoBehaviour
         //StartCoroutine(OnUpdateResource());
         StartCoroutine(DownLoadFile((_serverPath, _savePath) =>
             {
-                Debug.Log("Finish DownLoad_Http From - " + _serverPath + " - To - " + _savePath);
+                if (string.IsNullOrEmpty(_serverPath))
+                {
+                    Debug.Log("Do Not Need To DownLoad , Already exist : " + _savePath);
+                }
+                else
+                {
+                    Debug.Log("Finish DownLoad_Http From - " + _serverPath + " - To - " + _savePath);
+                }
+                
                 AssetBundle _bundle = AssetBundle.LoadFromFile(_savePath);
                 if (_bundle != null)
                 {
@@ -135,7 +143,8 @@ public class AbHotUpdateExample : MonoBehaviour
             yield break;
         }
 
-        File.WriteAllBytes(dataPath + "VersionMD5.txt", www.bytes);
+        //服务端的MD5文件先保存一份到本地，如果资源更新顺利完成，就用这份文件覆盖本地MD5文件。如果不顺利，也能保证本地文件依然是旧版本，不影响下次更新流程
+        File.WriteAllBytes(dataPath + "VersionMD5-Server.txt", www.bytes);
         string md5Text = www.text;
         Dictionary<string, string> _dic = AssetBundles.Util.GetMD5DicByFileString(md5Text);
 
@@ -166,9 +175,9 @@ public class AbHotUpdateExample : MonoBehaviour
                 Debug.Log("BeginDownload : " + pair.Key);
 
                 string _fileUrl = _resServerUrl + pair.Key;
-                string _savePath = dataPath + pair.Key;
-                Debug.LogError("Begin DownLoad_Http - _fileUrl: " + _fileUrl);
-                Debug.LogError("Begin DownLoad_Http - _savePath: " + _savePath);
+                string _savePath = dataPath + pair.Key;;
+                Debug.Log("Begin DownLoad_Http - _fileUrl: " + _fileUrl);
+                Debug.Log("Begin DownLoad_Http - _savePath: " + _savePath);
                 HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(_fileUrl);
                 request.Method = "GET";
                 HttpWebResponse hw = (HttpWebResponse)request.GetResponse();
@@ -199,9 +208,18 @@ public class AbHotUpdateExample : MonoBehaviour
                 fileStream.Close();
                 if (_callBack != null) _callBack(_fileUrl, _savePath);
             }
+            else
+            {
+                //不用下载，就是本地有，而且是最新
+                if (_callBack != null) _callBack("", localfile);
+            }
         }
 
         yield return new WaitForEndOfFrame();
+
+        //把服务端MD5文件同步到本地
+        File.WriteAllBytes(dataPath + "VersionMD5.txt", www.bytes);
+
         StartGame();
     }
 
