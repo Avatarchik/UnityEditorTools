@@ -30,13 +30,16 @@ public class AbHotUpdateExample : MonoBehaviour
         //先加载本地的md5文件，后面检查更新用
         AssetBundleManager.instance.Init(_ServerIP.text);
 
-        //
-        //实例里面，初始化的时候，会在本地StreamingAssets里面找MD5文件，在内存里面保留一份本地已有的<AB包名字，MD5码>键值对
-        //点击CheckHotUpdate后，会根据上面输入的资源服务器路径，下载服务端MD5文件(并覆盖本地的MD5文件)，然后对比，对于(本地没有的||本地已经有)的AB包，就下载下来
-        //下载完成后，AB在缓存中，可以选择输出到资源目录
-	}
+        /**
+         * 1，游戏初始化的时候，加载本地MD5文件，并建立<AB包名字，MD5码>键值对
+         * 2，点击加载，首先从服务端请求最新版本的MD5文件，然后跟本地的对比，如果有更新需求，请求更新，这里有两种模式：
+         *      A: HttpWebResponse 从服务端下载资源包到本地，然后使用
+         *      B: WWW_Load2Cache WWW加载到本地cache，然后使用
+         * PS：StreamingAssets是只读路径，实例中只是编辑器环境运行通过，真机环境并没有尝试
+         */
+    }
 
-    public void OnClick_StarCheckHotUpdate()
+    public void OnClick_StarCheckHotUpdate_HttpWebResponse()
     {
         //"http://www.1ceyou.com/game/web/asset/";
         _resServerUrl = _ServerIP.text;
@@ -65,6 +68,19 @@ public class AbHotUpdateExample : MonoBehaviour
             }));
     }
 
+
+    public void OnClick_StarCheckHotUpdate_WWW_Load2Cache()
+    {
+        //"http://www.1ceyou.com/game/web/asset/";
+        _resServerUrl = _ServerIP.text;
+        if (string.IsNullOrEmpty(_resServerUrl))
+        {
+            Debug.LogError("Resources_Server_Url Input is Error !!!");
+            return;
+        }
+        StartCoroutine(OnUpdateResource());
+    }
+
 	void Update () {
 	}
 
@@ -81,8 +97,8 @@ public class AbHotUpdateExample : MonoBehaviour
             Debug.LogError(www.error);
             yield break;
         }
-        
-        File.WriteAllBytes(dataPath + "VersionMD5.txt", www.bytes);
+
+        File.WriteAllBytes(dataPath + "VersionMD5-Server.txt", www.bytes);
         string md5Text = www.text;
         Dictionary<string, string> _dic = AssetBundles.Util.GetMD5DicByFileString(md5Text);
 
@@ -126,6 +142,10 @@ public class AbHotUpdateExample : MonoBehaviour
         }
 
         yield return new WaitForEndOfFrame();
+
+        //把服务端MD5文件同步到本地
+        File.WriteAllBytes(dataPath + "VersionMD5.txt", www.bytes);
+
         StartGame();
     }
 
